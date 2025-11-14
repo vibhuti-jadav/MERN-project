@@ -1,44 +1,86 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import InputFrom from './components/InputFrom.jsx'
+import { useState } from "react";
+import axios from "axios";
+import InputForm from "./components/InputFrom";
+import TodoList from "./components/TodoList";
 
-function App() {
-
-  const initialState =[
+const App = () => {
+  const initialState = [
     {
-      id:1,
-      task:"learn",
-      description:"learn react"
+      id: 1,
+      task: "cording",
+      description: "must practise cording",
     },
     {
-      id:2,
-      task:"practice",
-      description:"practice react in detail"
+      id: 2,
+      task: "eat",
+      description: "must do early eat",
+    },
+  ];
+
+  const [todoData, setTodoData] = useState(initialState);
+
+  const [editVal, setEditVal] = useState(null);
+
+  const addTodo = async (input) => {
+    if (!input.task || !input.description) {
+      
+      return alert("please provide task and description data");
+    } else if (editVal) {
+      setTodoData((prevData) =>
+        prevData.map((t) =>
+          t.id === editVal.id
+            ? { ...t, task: input.task, description: input.description }
+            : t
+        )
+      );
+      setEditVal(null);
+    } else {
+      const newData = {
+        id: new Date().getTime(),
+        task: input.task,
+        description: input.description,
+      };
+
+      setTodoData((prev) => [...prev, newData]);
+
+      try {
+        const res = await axios.post("http://localhost:5000/add", newData);
+
+        if (res.status === 201) {
+          alert("data added successfully");
+        } else {
+          throw new Error("Failed to create data");
+        }
+      } catch (error) {
+        alert(error.message);
+      }
     }
-  ]
+  };
 
-  const [todoData,setTodoData] = useState(initialState);
+  const editTodo = (id) => {
+    const editValue = todoData.find((t) => t.id === id);
 
-  const addTodo = (input)=>{
-    const newData = {
-      id:new Date().getTime(),
-      task:input.task,
-      description:input.description
-    };
+    setEditVal(editValue);
+  };
 
-    setTodoData((prev)=>[...prev,newData])
-  }
+  const deleteTodo = (id) => {
+    const deleteVal = todoData.filter((t) => t.id !== id);
 
-  console.log("to-data",todoData)
-
+    setTodoData(deleteVal);
+  };
 
   return (
     <>
-      <InputFrom addTodo={addTodo}/>
+      <InputForm addTodo={addTodo} editVal={editVal} />
+      <br />
+      <br />
+      <TodoList
+        todoData={todoData}
+        editTodo={editTodo}
+        deleteTodo={deleteTodo}
+      />
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
