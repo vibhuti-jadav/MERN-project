@@ -23,7 +23,6 @@ const App = () => {
 
   const addTodo = async (input) => {
     if (!input.task || !input.description) {
-      
       return alert("please provide task and description data");
     } else if (editVal) {
       setTodoData((prevData) =>
