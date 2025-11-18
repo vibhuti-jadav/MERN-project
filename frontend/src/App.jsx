@@ -1,25 +1,43 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import InputForm from "./components/InputFrom";
 import TodoList from "./components/TodoList";
+import InputForm from "./components/InputFrom";
 
 const App = () => {
   const initialState = [
     {
       id: 1,
-      task: "cording",
-      description: "must practise cording",
+      task: "learn",
+      description: "learn react",
     },
     {
       id: 2,
-      task: "eat",
-      description: "must do early eat",
+      task: "practice",
+      description: "practice react in detail",
     },
   ];
 
   const [todoData, setTodoData] = useState(initialState);
 
   const [editVal, setEditVal] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/task/allTask");
+
+        if (res.status !== 200) {
+          throw new Error("failed to load data");
+        }
+
+        setTodoData(res.data.taskData);
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+
+    fetchData();
+  }, [todoData]);
 
   const addTodo = async (input) => {
     if (!input.task || !input.description) {
@@ -32,6 +50,22 @@ const App = () => {
             : t
         )
       );
+
+      const updateTodoData = {
+        task: input.task,
+        description: input.description,
+      };
+
+      await axios.patch(
+        `http:localhost:5000/task/${editVal.id}`,
+        updateTodoData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
       setEditVal(null);
     } else {
       const newData = {
@@ -43,7 +77,7 @@ const App = () => {
       setTodoData((prev) => [...prev, newData]);
 
       try {
-        const res = await axios.post("http://localhost:5000/add", newData);
+        const res = await axios.post("http://localhost:5000/task/add", newData);
 
         if (res.status === 201) {
           alert("data added successfully");
